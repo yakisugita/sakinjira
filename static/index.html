@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sakinjira</title>
+</head>
+<body>
+    <h1>Sakinjira</h1>
+
+    <button id="signin_button">Googleでログイン</button>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js'
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCP1F6gg2Qg61QtkHAXM4L6kdUcCtXUv9M",
+            authDomain: "dev-sakinjira.firebaseapp.com",
+            projectId: "dev-sakinjira",
+            storageBucket: "dev-sakinjira.firebasestorage.app",
+            messagingSenderId: "299462269123",
+            appId: "1:299462269123:web:94e21e57f8fe8b2d9baa76"
+        }
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig)
+
+        import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js'
+        const auth = getAuth()
+        const provider = new GoogleAuthProvider()
+        document.getElementById('signin_button').addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+            .then((result) => {
+                // This gives you a Google Access Token. You can use it to access the Google API.
+                const credential = GoogleAuthProvider.credentialFromResult(result)
+                const token = credential.accessToken
+                // The signed-in user info.
+                const user = result.user
+                // IdP data available using getAdditionalUserInfo(result)
+                // ...
+                console.log(user)
+            }).catch((error) => {
+                // Handle Errors here.
+                const errorCode = error.code
+                const errorMessage = error.message
+                // The email of the user's account used.
+                const email = error.customData.email
+                // The AuthCredential type that was used.
+                const credential = GoogleAuthProvider.credentialFromError(error)
+                // ...
+                console.log(errorMessage)
+            })
+        })
+
+        onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // ログイン済み
+            const uid = user.uid
+        } else {
+            // ログアウト済み
+        }
+        });
+  </script>
+</body>
+</html>
