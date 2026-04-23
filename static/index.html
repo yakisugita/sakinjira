@@ -11,6 +11,10 @@
     <button id="signin_button">Googleでログイン</button>
 
     <script type="module">
+        import { createClient } from 'https://unpkg.com/@supabase/supabase-js@2'
+        // Create a single supabase client for interacting with your database
+        const supabase = createClient('https://nyvcpaxpalzcwhtwggfg.supabase.co', 'sb_publishable_n8kMJ7sQ2zJaJuJgKjFeCw_5ZFg1DKB')
+
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js'
 
         const firebaseConfig = {
