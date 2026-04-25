@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sakinjira</title>
+    <style>
+        #t_template {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <main>
@@ -18,7 +23,6 @@
             <button id="fetch_data">データ取得</button>
         </div>
 
-        <!-- テンプレ -->
         <table>
             <thead>
                 <tr>
@@ -27,11 +31,10 @@
                 <tr>
                     <th>タイトル</th><th>説明</th><th>完了</th><th>作成日</th><th>最終更新日</th><th>課題提示日</th><th>締切日</th><th>完了目標日</th><th>取り組み予定日</th><th>重要度</th>
                 </tr>
-                <div style="display: none;">
-                    <tr id="t_template">
-                        <td class="title"></td><td class="description"></td><td><input type="checkbox" class="is_done" switch readonly /></td><td class="created_at"></td><td class="updated_at"></td><td class="published_at"></td><td class="closed_at"></td><td class="target_at"></td><td class="scheduled_at"></td><td class="importance"></td>
-                    </tr>
-                </div>
+                <!-- テンプレ -->
+                <tr id="t_template">
+                    <td class="title"></td><td class="description"></td><td><input type="checkbox" class="is_done" switch disabled /></td><td class="created_at"></td><td class="updated_at"></td><td class="published_at"></td><td class="closed_at"></td><td class="target_at"></td><td class="scheduled_at"></td><td class="importance"></td><td><button class="delete_btn">削除</button></td>
+                </tr>
             </thead>
             <tbody id="t_body">
             </tbody>
@@ -151,7 +154,8 @@
             console.log('取得したタスク:', tasks)
             alert(`タスク ${tasks.length}件`)
 
-            
+            // 表をリセット
+            document.getElementById('t_body').innerHTML = ''
 
             tasks.forEach(task => {
                 console.log('task:', task)
@@ -178,14 +182,27 @@
                         tr.getElementsByClassName(key)[0].textContent = value
                     }
                 }
+
+                // 削除ボタンにイベントリスナーを追加
+                const deleteBtn = tr.getElementsByClassName('delete_btn')[0].addEventListener('click', async () => await deleteTask(task.id))
                 
             })
         })
+
+        const deleteTask = async (id) => {
+            // タスク削除
+            console.log(`delete ${id}`)
+            const response = await supabaseDB
+                .from('tasks')
+                .delete()
+                .eq('id', id)
+        }
 
         supabaseDB.auth.onAuthStateChange((event, session) => {
             console.log(event, session)
             renderState(session)
         })
+        
 
         fetchState()
     </script>
