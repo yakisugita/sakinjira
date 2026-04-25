@@ -17,6 +17,13 @@
             <button id="insert_data">データ挿入</button>
             <button id="fetch_data">データ取得</button>
         </div>
+
+        <!-- テンプレ -->
+        <table id="template_table">
+            <th><td>title</td><td>description</td><td>is_done</td><td>created_at</td><td>updated_at</td><td>published_at</td><td>closed_at</td><td>taget_at</td><td>scheduled_at</td><td>importance</td></th>
+            <th><td>タイトル</td><td>説明</td><td>完了</td><td>作成日</td><td>最終更新日</td><td>課題提示日</td><td>締切日</td><td>完了目標日</td><td>取り組み予定日</td><td>重要度</td></th>
+            <tr><td>タイトル</td><td>説明</td><td>完了</td><td>作成日</td><td>最終更新日</td><td>課題提示日</td><td>締切日</td><td>完了目標日</td><td>取り組み予定日</td><td>重要度</td></tr>
+        </table>
     </main>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -110,7 +117,6 @@
                 is_done: false,
                 importance: 1,
                 // タイムゾーンを含むタイムスタンプ
-                created_at: new Date().toISOString(),
                 published_at: new Date().toISOString(),
                 closed_at: null,
                 target_at: null,
