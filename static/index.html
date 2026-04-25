@@ -20,9 +20,14 @@
 
         <!-- テンプレ -->
         <table id="template_table">
-            <th><td>title</td><td>description</td><td>is_done</td><td>created_at</td><td>updated_at</td><td>published_at</td><td>closed_at</td><td>taget_at</td><td>scheduled_at</td><td>importance</td></th>
-            <th><td>タイトル</td><td>説明</td><td>完了</td><td>作成日</td><td>最終更新日</td><td>課題提示日</td><td>締切日</td><td>完了目標日</td><td>取り組み予定日</td><td>重要度</td></th>
-            <tr><td>タイトル</td><td>説明</td><td>完了</td><td>作成日</td><td>最終更新日</td><td>課題提示日</td><td>締切日</td><td>完了目標日</td><td>取り組み予定日</td><td>重要度</td></tr>
+            <thead>
+                <tr>
+                    <th>title</th><th>description</th><th>is_done</th><th>created_at</th><th>updated_at</th><th>published_at</th><th>closed_at</th><th>taget_at</th><th>scheduled_at</th><th>importance</th>
+                </tr>
+                <tr>
+                    <th>タイトル</th><th>説明</th><th>完了</th><th>作成日</th><th>最終更新日</th><th>課題提示日</th><th>締切日</th><th>完了目標日</th><th>取り組み予定日</th><th>重要度</th>
+                </tr>
+            </thead>
         </table>
     </main>
 
@@ -133,6 +138,7 @@
             }
 
             console.log('取得したタスク:', tasks)
+            alert(tasks.length)
         })
 
         supabaseDB.auth.onAuthStateChange(async () => {
