@@ -29,7 +29,7 @@
                 </tr>
                 <div style="display: none;">
                     <tr id="t_template">
-                        <td id="title"></td><td id="description"></td><td><input type="checkbox" id="is_done" switch readonly /></td><td id="created_at"></td><td id="updated_at"></td><td id="published_at"></td><td id="closed_at"></td><td id="target_at"></td><td id="scheduled_at"></td><td id="importance"></td>
+                        <td class="title"></td><td class="description"></td><td><input type="checkbox" class="is_done" switch readonly /></td><td class="created_at"></td><td class="updated_at"></td><td class="published_at"></td><td class="closed_at"></td><td class="target_at"></td><td class="scheduled_at"></td><td class="importance"></td>
                     </tr>
                 </div>
             </thead>
@@ -151,18 +151,35 @@
             console.log('取得したタスク:', tasks)
             alert(`タスク ${tasks.length}件`)
 
-            for (let [key, value] of Object.entries(tasks)) {
-                const template = document.getElementById('t_template').cloneNode(true)
-                
-                console.log('key:' + key + ' value:' + value)
-                if (key == 'is_done') {
-                    template.getElementById(key).value = value
-                } else {
-                    template.getElementById(key).textContent = value
-                }
+            
 
+            tasks.forEach(task => {
+                console.log('task:', task)
+
+                // テンプレをコピー
+                const template = document.getElementById('t_template').cloneNode(true)
+                template.id = task.id
+
+                // DOM追加して取得しなおす
                 document.getElementById('t_body').appendChild(template)
-            }
+                const tr = document.getElementById(task.id)
+
+                console.log(tr)
+                
+                for (const [key, value] of Object.entries(task)) {
+                    console.log('key:' + key + ' value:' + value)
+
+                    table_column_list = ['title', 'description', 'is_done', 'created_at', 'updated_at', 'published_at', 'closed_at', 'target_at', 'scheduled_at', 'importance']
+                    if (table_column_list.includes(key) == false) continue
+
+                    if (key == 'is_done') {
+                        tr.getElementsByClassName(key)[0].value = value
+                    } else {
+                        tr.getElementsByClassName(key)[0].textContent = value
+                    }
+                }
+                
+            })
         })
 
         supabaseDB.auth.onAuthStateChange((event, session) => {
