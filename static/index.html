@@ -27,11 +27,11 @@
             <button type="button" onclick="title_datetime()">タイトルに日時を挿入</button>
 
             <input type="text" id="f_description" placeholder="説明" />
-            <input type="datetime-local" id="f_published_at" placeholder="課題提示日" />
-            <input type="datetime-local" id="f_closed_at" placeholder="締切日" />
-            <input type="datetime-local" id="f_target_at" placeholder="完了目標日" />
-            <input type="datetime-local" id="f_scheduled_at" placeholder="取り組み予定日" />
-            <input type="number" id="f_importance" placeholder="重要度 (1-5)" min="1" max="5" required />
+            <label for="f_published_at">課題提示日</label><input type="datetime-local" id="f_published_at" placeholder="課題提示日" />
+            <label for="f_closed_at">締切日</label><input type="datetime-local" id="f_closed_at" placeholder="締切日" />
+            <label for="f_target_at">完了目標日</label><input type="datetime-local" id="f_target_at" placeholder="完了目標日" />
+            <label for="f_scheduled_at">取り組み予定日</label><input type="datetime-local" id="f_scheduled_at" placeholder="取り組み予定日" />
+            <label for="f_importance">重要度</label><input type="number" id="f_importance" placeholder="重要度 (1-5)" min="1" max="5" required />
 
             <button type="button" id="insert_btn">タスク追加</button>
         </form>
