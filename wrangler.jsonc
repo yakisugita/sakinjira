@@ -3,9 +3,17 @@
   "name": "sakinjira",
   "main": "src/index.tsx",
   "compatibility_date": "2026-04-25",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+  "dev": {
+    "ip": "0.0.0.0",
+    "port": 3000,
+    "local_protocol": "http",
+  },
+  "assets": {
+    "directory": "static"
+  }
+  // "compatibility_flags": [
+  //   "nodejs_compat"
+  // ],
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
