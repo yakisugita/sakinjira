@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sakinjira</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        #t_template {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Sakinjira</h1>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        
+        <div id="status" class="status">読み込み中...</div>
+
+        <div class="actions">
+            <img src="google_web_light_rd_SI.svg" alt="Click me to Sign in with Google" id="login_btn">
+            <button id="logout_btn">ログアウト</button>
+            <button id="fetch_data">データ取得</button>
+        </div>
+        
+        <form id="form" class="container-sm">
+            <label for="f_title" class="form-label">タイトル</label><input type="text" id="f_title" placeholder="タイトル" required class="form-control" />
+            <button type="button" onclick="title_datetime()" class="btn btn-primary">タイトルに日時を挿入</button>
+            <br>
+            <label for="f_description" class="form-label">説明</label><input type="text" id="f_description" placeholder="説明" class="form-control" />
+
+            <select class="form-select" aria-label="Default select example" id="f_importance" required>
+                <option value="" selected>重要度</option>
+                <option value="1">1:</option>
+                <option value="2">2:</option>
+                <option value="3">3:</option>
+                <option value="4">4:</option>
+                <option value="5">5: 提出課題等</option>
+            </select>
+
+            <div class="container text-center">
+                <div class="row">
+                    <div class="col">
+                        <label for="f_published_at">課題提示日</label>
+                        <input type="datetime-local" id="f_published_at" placeholder="課題提示日" class="form-control" />
+                    </div>
+                    <div class="col">
+                        <label for="f_closed_at">締切日</label>
+                        <input type="datetime-local" id="f_closed_at" placeholder="締切日" class="form-control" />
+                    </div>
+                    <div class="col">
+                        <label for="f_target_at">完了目標日</label>
+                        <input type="datetime-local" id="f_target_at" placeholder="完了目標日" class="form-control" />
+                    </div>
+                    <div class="col">
+                        <label for="f_scheduled_at">取り組み予定日</label>
+                        <input type="datetime-local" id="f_scheduled_at" placeholder="取り組み予定日" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" id="insert_btn" class="btn btn-primary">タスク追加</button>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="min-width: 300px;">title</th><th>description</th><th>is_done</th><th>created_at</th><th>updated_at</th><th>published_at</th><th>closed_at</th><th>taget_at</th><th>scheduled_at</th><th>importance</th>
+                    </tr>
+                    <tr>
+                        <th>タイトル</th><th>説明</th><th>完了</th><th>作成日</th><th>最終更新日</th><th>課題提示日</th><th>締切日</th><th>完了目標日</th><th>取り組み予定日</th><th>重要度</th>
+                    </tr>
+                    <!-- テンプレ -->
+                    <tr id="t_template">
+                        <td class="title"></td><td class="description"></td><td><input type="checkbox" class="is_done" switch disabled /></td><td class="created_at"></td><td class="updated_at"></td><td class="published_at"></td><td class="closed_at"></td><td class="target_at"></td><td class="scheduled_at"></td><td class="importance"></td><td><button class="delete_btn btn btn-secondary text-nowrap">削除</button></td>
+                    </tr>
+                </thead>
+                <tbody id="t_body">
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const { createClient } = supabase
+        const supabaseDB = createClient('https://nyvcpaxpalzcwhtwggfg.supabase.co', 'sb_publishable_n8kMJ7sQ2zJaJuJgKjFeCw_5ZFg1DKB')
+
+        const statusEl = document.getElementById('status')
+        const loginBtn = document.getElementById('login_btn')
+        const logoutBtn = document.getElementById('logout_btn')
+        const insertBtn = document.getElementById('insert_btn')
+        const fetchBtn = document.getElementById('fetch_data')
+
+        const title_datetime = () => {
+            const now = new Date()
+            const datetimeStr = now.toLocaleString()
+            document.getElementById('f_title').value += datetimeStr
+        }
+
+        const fetchState = async () => {
+            const { data: { session }, error } = await supabaseDB.auth.getSession()
+
+            if (error) {
+                statusEl.textContent = `セッションの取得に失敗しました: ${error.message}`
+                logoutBtn.disabled = true
+                insertBtn.disabled = true
+                return
+            }
+
+            renderState(session)
+        }
+
+        const renderState = (session) => {
+            if (!session?.user) {
+                statusEl.textContent = '未ログインです。Googleでログインを押してください。'
+                logoutBtn.disabled = true
+                insertBtn.disabled = true
+                return
+            }
+
+            const identities = session.user.identities?.map((identity) => identity.provider).join(', ') || 'unknown'
+            statusEl.textContent = [
+                'ログイン済みです。',
+                `user.id: ${session.user.id}`,
+                `email: ${session.user.email ?? '-'}`,
+                `providers: ${identities}`,
+            ].join('\n')
+            logoutBtn.disabled = false
+            insertBtn.disabled = false
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            loginBtn.disabled = true
+
+            const { error } = await supabaseDB.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin,
+                },
+            })
+
+            if (error) {
+                statusEl.textContent = `Googleログインに失敗しました: ${error.message}`
+                loginBtn.disabled = false
+                return
+            }
+
+            statusEl.textContent = 'Google の認証画面へ移動しています...'
+        })
+
+        logoutBtn.addEventListener('click', async () => {
+            const { error } = await supabaseDB.auth.signOut()
+
+            if (error) {
+                statusEl.textContent = `ログアウトに失敗しました: ${error.message}`
+                return
+            }
+
+            await renderState()
+        })
+
+        insertBtn.addEventListener('click', async () => {
+            // フォームのバリデーション
+            const form = document.getElementById('form')
+            if (!form.checkValidity()) {
+                statusEl.textContent = 'フォームに入力漏れがあります。'
+                return
+            }
+
+            const { data: { user }, error } = await supabaseDB.auth.getUser()
+
+            if (error) {
+                statusEl.textContent = `ユーザー取得に失敗しました: ${error.message}`
+                return
+            }
+
+            const title = document.getElementById('f_title').value
+            const description = document.getElementById('f_description').value
+            const published_at = document.getElementById('f_published_at').value
+            console.log(published_at)
+            const closed_at = document.getElementById('f_closed_at').value
+            const target_at = document.getElementById('f_target_at').value
+            const scheduled_at = document.getElementById('f_scheduled_at').value
+            const importance = document.getElementById('f_importance').value
+
+            // DBにタスクを追加
+            const { error: insertError } = await supabaseDB.from('tasks').insert({
+                user_id: user?.id,
+                title: title,
+                description: description,
+                is_done: false,
+                importance: importance,
+                published_at: published_at == '' ? null : published_at,
+                closed_at: closed_at == '' ? null : closed_at,
+                target_at: target_at == '' ? null : target_at,
+                scheduled_at: scheduled_at == '' ? null : scheduled_at,
+            })
+        })
+
+        fetchBtn.addEventListener('click', async () => await fetchTasks())
+
+        const fetchTasks = async () => {
+            const { data: tasks, error } = await supabaseDB.from('tasks').select('*')
+
+            if (error) {
+                statusEl.textContent = `タスクの取得に失敗しました: ${error.message}`
+                return
+            }
+
+            console.log('取得したタスク:', tasks)
+
+            // 表をリセット
+            document.getElementById('t_body').innerHTML = ''
+
+            tasks.forEach(task => {
+                console.log('task:', task)
+
+                // テンプレをコピー
+                const template = document.getElementById('t_template').cloneNode(true)
+                template.id = task.id
+
+                // DOM追加して取得しなおす
+                document.getElementById('t_body').appendChild(template)
+                const tr = document.getElementById(task.id)
+
+                console.log(tr)
+                
+                for (const [key, value] of Object.entries(task)) {
+                    console.log('key:' + key + ' value:' + value)
+
+                    table_column_list = ['title', 'description', 'is_done', 'created_at', 'updated_at', 'published_at', 'closed_at', 'target_at', 'scheduled_at', 'importance']
+                    if (table_column_list.includes(key) == false) continue
+
+                    if (key == 'is_done') {
+                        tr.getElementsByClassName(key)[0].value = value
+                    } else {
+                        tr.getElementsByClassName(key)[0].textContent = value
+                    }
+                }
+
+                // 削除ボタンにイベントリスナーを追加
+                const deleteBtn = tr.getElementsByClassName('delete_btn')[0].addEventListener('click', async () => await deleteTask(task.id))
+                
+            })
+        }
+
+        const deleteTask = async (id) => {
+            // タスク削除
+            console.log(`delete ${id}`)
+            const response = await supabaseDB
+                .from('tasks')
+                .delete()
+                .eq('id', id)
+        }
+
+        supabaseDB.auth.onAuthStateChange((event, session) => {
+            console.log(event, session)
+
+            if (event === 'INITIAL_SESSION') {
+                // ロード完了時にタスク表示
+                fetchTasks()
+            }
+
+            renderState(session)
+        })
+        
+
+        fetchState()
+    </script>
+</body>
+</html>
