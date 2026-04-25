@@ -19,9 +19,22 @@
         <div class="actions">
             <button id="login_btn">Googleでログイン</button>
             <button id="logout_btn">ログアウト</button>
-            <button id="insert_data">データ挿入</button>
             <button id="fetch_data">データ取得</button>
         </div>
+        
+        <form id="form">
+            <input type="text" id="f_title" placeholder="タイトル" required />
+            <button type="button" onclick="title_datetime()">タイトルに日時を挿入</button>
+
+            <input type="text" id="f_description" placeholder="説明" />
+            <input type="datetime-local" id="f_published_at" placeholder="課題提示日" />
+            <input type="datetime-local" id="f_closed_at" placeholder="締切日" />
+            <input type="datetime-local" id="f_target_at" placeholder="完了目標日" />
+            <input type="datetime-local" id="f_scheduled_at" placeholder="取り組み予定日" />
+            <input type="number" id="f_importance" placeholder="重要度 (1-5)" min="1" max="5" required />
+
+            <button type="button" id="insert_btn">タスク追加</button>
+        </form>
 
         <table>
             <thead>
@@ -49,8 +62,14 @@
         const statusEl = document.getElementById('status')
         const loginBtn = document.getElementById('login_btn')
         const logoutBtn = document.getElementById('logout_btn')
-        const insertBtn = document.getElementById('insert_data')
+        const insertBtn = document.getElementById('insert_btn')
         const fetchBtn = document.getElementById('fetch_data')
+
+        const title_datetime = () => {
+            const now = new Date()
+            const datetimeStr = now.toLocaleString()
+            document.getElementById('f_title').value += datetimeStr
+        }
 
         const fetchState = async () => {
             const { data: { session }, error } = await supabaseDB.auth.getSession()
@@ -115,31 +134,40 @@
         })
 
         insertBtn.addEventListener('click', async () => {
-            const { data: { user }, error } = await supabaseDB.auth.getUser()
+            // フォームのバリデーション
+            const form = document.getElementById('form')
+            if (!form.checkValidity()) {
+                statusEl.textContent = 'フォームに入力漏れがあります。'
+                return
+            }
 
-            console.log(user)
+            const { data: { user }, error } = await supabaseDB.auth.getUser()
 
             if (error) {
                 statusEl.textContent = `ユーザー取得に失敗しました: ${error.message}`
                 return
             }
 
-            statusEl.textContent = user
-                ? `現在の user.id は ${user.id} です。`
-                : 'まだログインしていません。'
+            const title = document.getElementById('f_title').value
+            const description = document.getElementById('f_description').value
+            const published_at = document.getElementById('f_published_at').value
+            console.log(published_at)
+            const closed_at = document.getElementById('f_closed_at').value
+            const target_at = document.getElementById('f_target_at').value
+            const scheduled_at = document.getElementById('f_scheduled_at').value
+            const importance = document.getElementById('f_importance').value
 
             // DBにタスクを追加
             const { error: insertError } = await supabaseDB.from('tasks').insert({
                 user_id: user?.id,
-                title: `タスク ${new Date().toLocaleTimeString()}`,
-                description: 'これはサンプルのタスクです。',
+                title: title,
+                description: description,
                 is_done: false,
-                importance: 1,
-                // タイムゾーンを含むタイムスタンプ
-                published_at: new Date().toISOString(),
-                closed_at: null,
-                target_at: null,
-                scheduled_at: null
+                importance: importance,
+                published_at: published_at == '' ? null : published_at,
+                closed_at: closed_at == '' ? null : closed_at,
+                target_at: target_at == '' ? null : target_at,
+                scheduled_at: scheduled_at == '' ? null : scheduled_at,
             })
         })
 
