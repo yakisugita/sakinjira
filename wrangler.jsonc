@@ -6,5 +6,8 @@
   "assets": {
     "directory": "./static",
     "binding": "ASSETS"
-  }
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
 }
