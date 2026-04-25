@@ -6,64 +6,134 @@
     <title>Sakinjira</title>
 </head>
 <body>
-    <h1>Sakinjira</h1>
+    <main>
+        <h1>Sakinjira</h1>
+        
+        <div id="status" class="status">読み込み中...</div>
 
-    <button id="signin_button">Googleでログイン</button>
+        <div class="actions">
+            <button id="login_btn">Googleでログイン</button>
+            <button id="logout_btn">ログアウト</button>
+            <button id="insert_data">データ挿入</button>
+            <button id="fetch_data">データ取得</button>
+        </div>
+    </main>
 
-    <script type="module">
-        import { createClient } from 'https://unpkg.com/@supabase/supabase-js@2'
-        // Create a single supabase client for interacting with your database
-        const supabase = createClient('https://nyvcpaxpalzcwhtwggfg.supabase.co', 'sb_publishable_n8kMJ7sQ2zJaJuJgKjFeCw_5ZFg1DKB')
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const { createClient } = supabase
+        const supabaseDB = createClient('https://nyvcpaxpalzcwhtwggfg.supabase.co', 'sb_publishable_n8kMJ7sQ2zJaJuJgKjFeCw_5ZFg1DKB')
 
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js'
+        const statusEl = document.getElementById('status')
+        const loginBtn = document.getElementById('login_btn')
+        const logoutBtn = document.getElementById('logout_btn')
+        const insertBtn = document.getElementById('insert_data')
+        const fetchBtn = document.getElementById('fetch_data')
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCP1F6gg2Qg61QtkHAXM4L6kdUcCtXUv9M",
-            authDomain: "dev-sakinjira.firebaseapp.com",
-            projectId: "dev-sakinjira",
-            storageBucket: "dev-sakinjira.firebasestorage.app",
-            messagingSenderId: "299462269123",
-            appId: "1:299462269123:web:94e21e57f8fe8b2d9baa76"
+        const renderState = async () => {
+            const { data: { session }, error } = await supabaseDB.auth.getSession()
+
+            if (error) {
+                statusEl.textContent = `セッションの取得に失敗しました: ${error.message}`
+                logoutBtn.disabled = true
+                insertBtn.disabled = true
+                return
+            }
+
+            if (!session?.user) {
+                statusEl.textContent = '未ログインです。Googleでログインを押してください。'
+                logoutBtn.disabled = true
+                insertBtn.disabled = true
+                return
+            }
+
+            const identities = session.user.identities?.map((identity) => identity.provider).join(', ') || 'unknown'
+            statusEl.textContent = [
+                'ログイン済みです。',
+                `user.id: ${session.user.id}`,
+                `email: ${session.user.email ?? '-'}`,
+                `providers: ${identities}`,
+            ].join('\n')
+            logoutBtn.disabled = false
+            insertBtn.disabled = false
         }
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig)
+        loginBtn.addEventListener('click', async () => {
+            loginBtn.disabled = true
 
-        import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js'
-        const auth = getAuth()
-        const provider = new GoogleAuthProvider()
-        document.getElementById('signin_button').addEventListener('click', () => {
-            signInWithPopup(auth, provider)
-            .then((result) => {
-                // This gives you a Google Access Token. You can use it to access the Google API.
-                const credential = GoogleAuthProvider.credentialFromResult(result)
-                const token = credential.accessToken
-                // The signed-in user info.
-                const user = result.user
-                // IdP data available using getAdditionalUserInfo(result)
-                // ...
-                console.log(user)
-            }).catch((error) => {
-                // Handle Errors here.
-                const errorCode = error.code
-                const errorMessage = error.message
-                // The email of the user's account used.
-                const email = error.customData.email
-                // The AuthCredential type that was used.
-                const credential = GoogleAuthProvider.credentialFromError(error)
-                // ...
-                console.log(errorMessage)
+            const { error } = await supabaseDB.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin,
+                },
+            })
+
+            if (error) {
+                statusEl.textContent = `Googleログインに失敗しました: ${error.message}`
+                loginBtn.disabled = false
+                return
+            }
+
+            statusEl.textContent = 'Google の認証画面へ移動しています...'
+        })
+
+        logoutBtn.addEventListener('click', async () => {
+            const { error } = await supabaseDB.auth.signOut()
+
+            if (error) {
+                statusEl.textContent = `ログアウトに失敗しました: ${error.message}`
+                return
+            }
+
+            await renderState()
+        })
+
+        insertBtn.addEventListener('click', async () => {
+            const { data: { user }, error } = await supabaseDB.auth.getUser()
+
+            console.log(user)
+
+            if (error) {
+                statusEl.textContent = `ユーザー取得に失敗しました: ${error.message}`
+                return
+            }
+
+            statusEl.textContent = user
+                ? `現在の user.id は ${user.id} です。`
+                : 'まだログインしていません。'
+
+            // DBにタスクを追加
+            const { error: insertError } = await supabaseDB.from('tasks').insert({
+                user_id: user?.id,
+                title: `タスク ${new Date().toLocaleTimeString()}`,
+                description: 'これはサンプルのタスクです。',
+                is_done: false,
+                importance: 1,
+                // タイムゾーンを含むタイムスタンプ
+                created_at: new Date().toISOString(),
+                published_at: new Date().toISOString(),
+                closed_at: null,
+                target_at: null,
+                scheduled_at: null
             })
         })
 
-        onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // ログイン済み
-            const uid = user.uid
-        } else {
-            // ログアウト済み
-        }
-        });
-  </script>
+        fetchBtn.addEventListener('click', async () => {
+            const { data: tasks, error } = await supabaseDB.from('tasks').select('*')
+
+            if (error) {
+                statusEl.textContent = `タスクの取得に失敗しました: ${error.message}`
+                return
+            }
+
+            console.log('取得したタスク:', tasks)
+        })
+
+        supabaseDB.auth.onAuthStateChange(async () => {
+            await renderState()
+        })
+
+        renderState()
+    </script>
 </body>
 </html>
