@@ -17,7 +17,7 @@
         <div id="status" class="status">読み込み中...</div>
 
         <div class="actions">
-            <button id="login_btn">Googleでログイン</button>
+            <img src="google_web_light_rd_SI.svg" alt="Click me to Sign in with Google" id="login_btn">
             <button id="logout_btn">ログアウト</button>
             <button id="fetch_data">データ取得</button>
         </div>
@@ -228,6 +228,12 @@
 
         supabaseDB.auth.onAuthStateChange((event, session) => {
             console.log(event, session)
+
+            if (event === 'INITIAL_SESSION') {
+                // ロード完了時にタスク表示
+                fetchState()
+            }
+
             renderState(session)
         })
         
