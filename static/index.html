@@ -19,7 +19,7 @@
         </div>
 
         <!-- テンプレ -->
-        <table id="template_table">
+        <table>
             <thead>
                 <tr>
                     <th>title</th><th>description</th><th>is_done</th><th>created_at</th><th>updated_at</th><th>published_at</th><th>closed_at</th><th>taget_at</th><th>scheduled_at</th><th>importance</th>
@@ -27,7 +27,12 @@
                 <tr>
                     <th>タイトル</th><th>説明</th><th>完了</th><th>作成日</th><th>最終更新日</th><th>課題提示日</th><th>締切日</th><th>完了目標日</th><th>取り組み予定日</th><th>重要度</th>
                 </tr>
+                <tr style="display: none;">
+                    <td id="t_title"></td><td id="t_description"></td><td><input type="checkbox" id="t_is_done" switch readonly /></td><td id="t_created_at"></td><td id="t_updated_at"></td><td id="t_published_at"></td><td id="t_closed_at"></td><td id="t_target_at"></td><td id="t_scheduled_at"></td><td id="t_importance"></td>
+                </tr>
             </thead>
+            <tbody id="t_body">
+            </tbody>
         </table>
     </main>
 
@@ -42,7 +47,7 @@
         const insertBtn = document.getElementById('insert_data')
         const fetchBtn = document.getElementById('fetch_data')
 
-        const renderState = async () => {
+        const fetchState = async () => {
             const { data: { session }, error } = await supabaseDB.auth.getSession()
 
             if (error) {
@@ -52,6 +57,10 @@
                 return
             }
 
+            renderState(session)
+        }
+
+        const renderState = (session) => {
             if (!session?.user) {
                 statusEl.textContent = '未ログインです。Googleでログインを押してください。'
                 logoutBtn.disabled = true
@@ -141,11 +150,12 @@
             alert(tasks.length)
         })
 
-        supabaseDB.auth.onAuthStateChange(async () => {
-            await renderState()
+        supabaseDB.auth.onAuthStateChange((event, session) => {
+            console.log(event, session)
+            renderState(session)
         })
 
-        renderState()
+        fetchState()
     </script>
 </body>
 </html>
