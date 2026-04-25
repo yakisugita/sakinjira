@@ -171,7 +171,9 @@
             })
         })
 
-        fetchBtn.addEventListener('click', async () => {
+        fetchBtn.addEventListener('click', async () => await fetchTasks())
+
+        const fetchTasks = async () => {
             const { data: tasks, error } = await supabaseDB.from('tasks').select('*')
 
             if (error) {
@@ -180,7 +182,6 @@
             }
 
             console.log('取得したタスク:', tasks)
-            alert(`タスク ${tasks.length}件`)
 
             // 表をリセット
             document.getElementById('t_body').innerHTML = ''
@@ -215,7 +216,7 @@
                 const deleteBtn = tr.getElementsByClassName('delete_btn')[0].addEventListener('click', async () => await deleteTask(task.id))
                 
             })
-        })
+        }
 
         const deleteTask = async (id) => {
             // タスク削除
@@ -231,7 +232,7 @@
 
             if (event === 'INITIAL_SESSION') {
                 // ロード完了時にタスク表示
-                fetchState()
+                fetchTasks()
             }
 
             renderState(session)
