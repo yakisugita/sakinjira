@@ -9,6 +9,22 @@
         #t_template {
             display: none;
         }
+
+        /* created_at と updated_at 列を初期状態で非表示 */
+        table th:nth-child(4),
+        table th:nth-child(5),
+        table td:nth-child(4),
+        table td:nth-child(5) {
+            display: none;
+        }
+
+        /* show-timestamps クラス時は表示 */
+        table.show-timestamps th:nth-child(4),
+        table.show-timestamps th:nth-child(5),
+        table.show-timestamps td:nth-child(4),
+        table.show-timestamps td:nth-child(5) {
+            display: table-cell;
+        }
     </style>
 </head>
 <body>
@@ -22,6 +38,7 @@
             <img src="google_web_light_rd_SI.svg" alt="Click me to Sign in with Google" id="login_btn">
             <button id="logout_btn">ログアウト</button>
             <button id="fetch_data">データ取得</button>
+            <button id="show_timestamps">created_at / updated_at を表示</button>
         </div>
         
         <form id="form" class="container-sm">
@@ -64,7 +81,7 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table">
+            <table class="table" id="task_table">
                 <thead>
                     <tr>
                         <th style="min-width: 300px;">title</th><th>description</th><th>is_done</th><th>created_at</th><th>updated_at</th><th>published_at</th><th>closed_at</th><th>taget_at</th><th>scheduled_at</th><th>importance</th>
@@ -93,6 +110,8 @@
         const logoutBtn = document.getElementById('logout_btn')
         const insertBtn = document.getElementById('insert_btn')
         const fetchBtn = document.getElementById('fetch_data')
+        const showTimestampsBtn = document.getElementById('show_timestamps')
+        const taskTable = document.getElementById('task_table')
 
         const title_datetime = () => {
             const now = new Date()
@@ -201,6 +220,11 @@
         })
 
         fetchBtn.addEventListener('click', async () => await fetchTasks())
+
+        showTimestampsBtn.addEventListener('click', () => {
+            taskTable.classList.add('show-timestamps')
+            showTimestampsBtn.style.display = 'none'
+        })
 
         const fetchTasks = async () => {
             const { data: tasks, error } = await supabaseDB.from('tasks').select('*')
