@@ -25,6 +25,22 @@
         table.show-timestamps td:nth-child(5) {
             display: table-cell;
         }
+
+        .importance-1 td.importance {
+            background-color: #ffffff;
+        }
+        .importance-2 td.importance {
+            background-color: #d1d1d1;
+        }
+        .importance-3 td.importance {
+            background-color: #fff194;
+        }
+        .importance-4 td.importance {
+            background-color: #ffc582;
+        }
+        .importance-5 td.importance {
+            background-color: #ff9494;
+        }
     </style>
 </head>
 <body>
@@ -257,6 +273,10 @@
 
                     table_column_list = ['title', 'description', 'is_done', 'created_at', 'updated_at', 'published_at', 'closed_at', 'target_at', 'scheduled_at', 'importance']
                     if (table_column_list.includes(key) == false) continue
+
+                    if (key == 'importance') {
+                        tr.classList.add(`importance-${value}`)
+                    }
 
                     if (key == 'is_done') {
                         tr.getElementsByClassName(key)[0].value = value
